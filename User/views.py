@@ -10,9 +10,11 @@ from .serializer import(
     UserSerializer,
     LoginSerializer,
     UserProfileSerializer,
+    UserActivationSerializer
 )
+from .models import User, Activation
 
-class Register_user(APIView):
+class Register_user_view(APIView):
     permission_classes=[AllowAny]
 
     def post(self, request):
@@ -23,7 +25,7 @@ class Register_user(APIView):
         else:
             return Response("User Registration Failed from serializer", status=status.HTTP_400_BAD_REQUEST)
 
-class Login_user(APIView):
+class Login_user_view(APIView):
     permission_classes=[AllowAny]
 
     def post(self, request):
@@ -31,28 +33,31 @@ class Login_user(APIView):
         if serializer.is_valid():
             email=serializer.validated_data['email']
             password=serializer.validated_data['password']
-            user=authenticate(email=email, password=password)
-            print(email)
-            if user and user.is_active:
-                refresh = RefreshToken.for_user(user)
-                payload={
-                    "email":user.email,
-                    "first_name":user.first_name,
-                    "last_name":user.last_name,
-                    "phone_number":user.phone_number,
-                    "DOB":user.DOB,
-                    "last_login":user.last_login,
-                    "created_at":user.created_at
-                    }
-                return Response({
-                    'refresh': str(refresh),
-                    'access': str(refresh.access_token),
-                    'payload':payload
-                }, status=status.HTTP_200_OK)
-            else:
+            try:
+                user=authenticate(email=email, password=password)
+                if user and user.is_active:
+                    refresh = RefreshToken.for_user(user)
+                    payload={
+                        "email":user.email,
+                        "first_name":user.first_name,
+                        "last_name":user.last_name,
+                        "phone_number":user.phone_number,
+                        "DOB":user.DOB,
+                        "last_login":user.last_login,
+                        "created_at":user.created_at
+                        }
+                    return Response({
+                        'refresh': str(refresh),
+                        'access': str(refresh.access_token),
+                        'payload':payload
+                    }, status=status.HTTP_200_OK)
+                else:
+                    return Response("User is not activated", status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
                 return Response("User Login Failed", status=status.HTTP_400_BAD_REQUEST)
             
-class Update_user(APIView):
+            
+class Update_user_view(APIView):
     permission_classes=[IsAuthenticated]
 
     def put(self, request):
@@ -62,3 +67,24 @@ class Update_user(APIView):
             return Response("User Update Successful", status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+class activate_user_view(APIView,):
+    permission_classes=[AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        activation_token=kwargs['token']
+        try:
+            email=Activation.objects.get(token=activation_token).user.email
+            user=User.objects.get(email=email)
+            if not user:
+                return Response("No User Found", status=status.HTTP_400_BAD_REQUEST)
+            activation=Activation.objects.get(user=user, token=activation_token)
+            if not activation:
+                return Response("Invalid Activation link.", status=status.HTTP_400_BAD_REQUEST)
+            user.is_active=True
+            user.save()
+            activation.delete()
+            return Response("User Activated Successful", status=status.HTTP_200_OK)
+        except:
+            return Response("User Activation Failed", status=status.HTTP_400_BAD_REQUEST)
+        

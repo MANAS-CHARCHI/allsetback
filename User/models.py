@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractUser
+import uuid
 
 
 class UserManager(BaseUserManager):
@@ -12,15 +13,17 @@ class UserManager(BaseUserManager):
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
+        Activation.objects.create(user=user)
         return user
-
+    
     def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
         return self.create_user(email, password, **extra_fields)
 
 class User(AbstractUser):
     username=None
-    is_staff=None
+    # is_staff=None
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     email = models.EmailField(unique=True, null=False, max_length=100)
@@ -30,7 +33,7 @@ class User(AbstractUser):
     updated_at = models.DateTimeField(auto_now=True)
     last_login = models.DateTimeField(auto_now=True)
 
-    is_active=models.BooleanField(default=True)
+    is_active=models.BooleanField(default=False)
     is_superuser=models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
@@ -46,7 +49,27 @@ class User(AbstractUser):
         verbose_name = "User"
         verbose_name_plural = "Users"
 
-    def save(self, *args, **kwargs):
-        super(User, self).save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     is_newly_activated = self.pk and not User.objects.get(pk=self.pk).is_active and self.is_active
+    #     super(User, self).save(*args, **kwargs)
 
-        return self
+    #     if is_newly_activated and not Activation.objects.filter(user=self).exists():
+    #         Activation.objects.create(user=self)
+
+
+
+class Activation(models.Model):
+    id=models.BigAutoField(primary_key=True, null=False, blank=False, )
+    user = models.OneToOneField(User, on_delete=models.CASCADE)    
+    created_at=models.DateTimeField(auto_now_add=True)
+    token=models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+
+    class Meta:
+        ordering=('-created_at',)
+
+# class send_activation_email(sender, instance, created, **kwargs):
+#     if created:
+#         activation_link=f'http://127.0.0.1:8000/activate/{instance.token}'
+#         send_mail.delay(instance.email, activation_link)
+#         pass
+    
