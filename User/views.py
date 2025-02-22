@@ -21,9 +21,13 @@ class Register_user_view(APIView):
         serializer=UserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
+            activation=Activation.objects.get(user=serializer.instance)
+            # activation.send_activation_email()
+            print(f"http://127.0.0.1:8000/user/activate/{activation.token}")
             return Response("User Registration Successful", status=status.HTTP_201_CREATED)
         else:
             return Response("User Registration Failed from serializer", status=status.HTTP_400_BAD_REQUEST)
+        
 
 class Login_user_view(APIView):
     permission_classes=[AllowAny]
