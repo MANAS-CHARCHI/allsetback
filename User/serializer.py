@@ -22,11 +22,8 @@ class UserSerializer(serializers.ModelSerializer):
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
         instance.DOB = validated_data.get('DOB', instance.DOB)
-        # instance.email = validated_data.get('email', instance.email)
-        # instance.password = validated_data.get('password', instance.password)
         instance.save()
         return instance
-
     
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -42,3 +39,4 @@ class UserActivationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['email', 'is_active']
+
