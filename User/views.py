@@ -6,6 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import update_last_login
 from rest_framework_simplejwt.exceptions import TokenError
+from datetime import datetime
 
 from .serializer import(
     UserSerializer,
@@ -63,16 +64,18 @@ class Login_user_view(APIView):
                     value=access_token, 
                     httponly=True,
                     secure=False, #TODO: change to true when deploy
-                    samesite="lax",
+                    samesite="Lax", #TODO: change "lax" when deploy
                     path="/",
+                    max_age=5 * 60
                     )
                 response.set_cookie(
                     key="refresh_token",
                     value=str(refresh),
                     httponly=True,
                     secure=False, #TODO: change to true when deploy
-                    samesite="lax",
-                    path="/"
+                    samesite="Lax",
+                    path="/",
+                    max_age=7 * 24 * 60 * 60
                 )
                 return response
             except Exception as e:

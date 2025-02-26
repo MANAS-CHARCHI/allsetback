@@ -14,7 +14,7 @@ urlpatterns = [
     path('login', Login_user_view.as_view(), name='login'),
     path('update', Update_user_view.as_view(), name='update'),
     path('logout', Logout_user_view.as_view(), name='logout'),
-    path('refreshToken', Refresh_token_view.as_view(), name='refreshToken'),
+    path('token/refresh', Refresh_token_view.as_view(), name='refreshToken'),
     # path('forget-password', ),
     # path('password/reset',),
     # path('password/reset/verify/<uidb64>/<token>',),
