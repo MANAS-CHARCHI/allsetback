@@ -24,38 +24,42 @@ class RegisterView(APIView):
                 {"error": "Email already exists"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-        user = User.objects.create_user(email=email, password=password)
-        response = Response({"message": "Registration successful"}, status=status.HTTP_201_CREATED)
+        try:
+            user = User.objects.create_user(email=email, password=password)
+            response = Response({"message": "Registration successful"}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            response = Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         return response
 
 class LoginView(APIView):
     def post(self, request):
-        serializer = LoginSerializer(data=request.data)
-
-        if serializer.is_valid():
-            user=serializer.validated_data
-            refresh = RefreshToken.for_user(user)
-            access_token = str(refresh.access_token)
-            response=Response({"user": user.email}, status=status.HTTP_200_OK) 
-            response.set_cookie(key="access_token",
-                            value=access_token, 
-                            httponly=True,
-                            samesite="None",
-                            secure=True,
-                            max_age= 5*60,
-                            path="/",
-                            )
-            response.set_cookie(key="refresh_token",
-                            value=str(refresh),
-                            httponly=True,
-                            samesite="None",
-                            secure=True,
-                            max_age= 7 * 24 * 60 * 60,
-                            path="/",
-                            )
-            return response
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            serializer = LoginSerializer(data=request.data)
+            if serializer.is_valid():
+                user=serializer.validated_data
+                refresh = RefreshToken.for_user(user)
+                access_token = str(refresh.access_token)
+                response=Response({"user": user.email}, status=status.HTTP_200_OK) 
+                response.set_cookie(key="access_token",
+                                value=access_token, 
+                                httponly=True,
+                                samesite="None",
+                                secure=True,
+                                max_age= 5,
+                                path="/",
+                                )
+                response.set_cookie(key="refresh_token",
+                                value=str(refresh),
+                                httponly=True,
+                                samesite="None",
+                                secure=True,
+                                max_age= 7 * 24 * 60 * 60,
+                                path="/",
+                                )
+                return response
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:  
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class LogoutView(APIView):
     
