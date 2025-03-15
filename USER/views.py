@@ -6,6 +6,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import LoginSerializer
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.exceptions import InvalidToken
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 User=get_user_model()
 
@@ -53,7 +55,7 @@ class LoginView(APIView):
                                 httponly=True,
                                 samesite="None",
                                 secure=True,
-                                max_age= 5,
+                                max_age= 30 * 60,
                                 path="/",
                                 )
                 response.set_cookie(key="refresh_token",
@@ -70,7 +72,7 @@ class LoginView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class LogoutView(APIView):
-    
+    # permission_class=[IsAuthenticated]
     def post(self, request):
         refresh_token=request.COOKIES.get("refresh_token")
         if refresh_token:
@@ -80,8 +82,11 @@ class LogoutView(APIView):
             except Exception as e:
                 return Response({"error": "Error Invalidate token"}, status=status.HTTP_401_UNAUTHORIZED)
         response=Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
-        response.delete_cookie("access_token")
-        response.delete_cookie("refresh_token")
+        try:
+            response.delete_cookie("access_token")
+            response.delete_cookie("refresh_token")
+        except:
+            pass
         return response
 
 class UserView(APIView):
@@ -106,9 +111,16 @@ class CookieTokenRefreshView(APIView):
                                 httponly=True,
                                 samesite="None",
                                 secure=True,
-                                max_age= 5 * 60,
+                                max_age= 30 * 60,
                                 path="/",
                                 )
             return response
         except InvalidToken:
             return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+class VerifyUserView(APIView):
+    authentication_classes=[JWTAuthentication]
+    permission_classes=[IsAuthenticated]
+
+    def get(self, request):
+        return Response({"message": "User authenticated successfully"}, status=status.HTTP_200_OK)

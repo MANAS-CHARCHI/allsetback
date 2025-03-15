@@ -5,6 +5,7 @@ from USER.views import(
     LogoutView,
     UserView,
     CookieTokenRefreshView,
+    VerifyUserView,
 )
 
 urlpatterns = [
@@ -13,5 +14,6 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('profile/', UserView.as_view(), name='profile'),
     path('refresh/', CookieTokenRefreshView.as_view(), name='refresh-token'),
+    path('verify/', VerifyUserView.as_view(), name='verify-user'),
 ]
 
