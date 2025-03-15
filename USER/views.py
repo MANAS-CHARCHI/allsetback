@@ -39,7 +39,15 @@ class LoginView(APIView):
                 user=serializer.validated_data
                 refresh = RefreshToken.for_user(user)
                 access_token = str(refresh.access_token)
-                response=Response({"user": user.email}, status=status.HTTP_200_OK) 
+                response=Response(
+                    {"user": {
+                        "email": user.email, 
+                        "first_name":user.first_name, 
+                        "last_name": user.last_name,
+                        "last_login": user.last_login,
+                        "date_joined": user.date_joined
+                        }
+                    },status=status.HTTP_200_OK) 
                 response.set_cookie(key="access_token",
                                 value=access_token, 
                                 httponly=True,
