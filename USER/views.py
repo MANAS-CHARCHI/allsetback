@@ -7,7 +7,6 @@ from .serializers import LoginSerializer
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.exceptions import InvalidToken
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.authentication import JWTAuthentication
 
 User=get_user_model()
 
@@ -47,7 +46,8 @@ class LoginView(APIView):
                         "first_name":user.first_name, 
                         "last_name": user.last_name,
                         "last_login": user.last_login,
-                        "date_joined": user.date_joined
+                        "date_joined": user.date_joined,
+                        "is_active": user.is_active
                         }
                     },status=status.HTTP_200_OK) 
                 response.set_cookie(key="access_token",
@@ -119,7 +119,6 @@ class CookieTokenRefreshView(APIView):
             return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
         
 class VerifyUserView(APIView):
-    authentication_classes=[JWTAuthentication]
     permission_classes=[IsAuthenticated]
 
     def get(self, request):
