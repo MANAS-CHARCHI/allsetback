@@ -5,8 +5,15 @@ from django.contrib.auth import authenticate
 
 class UserSerializer(ModelSerializer):
     class Meta:
-        model = AllsetUser
-        fields = ['email', 'first_name', 'last_name']
+        model = User
+        fields = ['email', 'first_name', 'last_name', 'DOB', 'phone_number','age', 'date_joined', 'last_login', 'is_active']
+        read_only_fields = ['date_joined', 'last_login', 'email', 'is_active', 'age']
+        extra_kwargs = {
+            'first_name': {'required': False},
+            'last_name': {'required': False},
+            'DOB': {'required': False},
+            'phone_number': {'required': False},
+        }
 
 class LoginSerializer(Serializer):
     email=serializers.EmailField(required=True)

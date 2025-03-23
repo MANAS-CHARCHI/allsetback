@@ -6,6 +6,10 @@ from USER.views import(
     UserView,
     CookieTokenRefreshView,
     VerifyUserView,
+    ForgetPasswordView,
+    ActivateAccountView,
+    changeForgetPasswordView,
+    UpdateUserView
 )
 
 urlpatterns = [
@@ -15,5 +19,9 @@ urlpatterns = [
     path('profile/', UserView.as_view(), name='profile'),
     path('refresh/', CookieTokenRefreshView.as_view(), name='refresh-token'),
     path('verify/', VerifyUserView.as_view(), name='verify-user'),
+    path('update/', UpdateUserView.as_view(), name='update-user'),
+    path('forget-password/', ForgetPasswordView.as_view(), name='forget-password'),
+    path('changeforgetpassword/<email>/<token>', changeForgetPasswordView.as_view(), name='change-forget-password'),
+    path('activate/<token>', ActivateAccountView.as_view(), name='activate-account'),
 ]
 

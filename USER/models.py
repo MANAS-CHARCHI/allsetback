@@ -1,5 +1,8 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
+from django.utils.translation import gettext as _
+from datetime import date
+import uuid
 
 class AllsetUserManager(BaseUserManager):
     use_in_migrations = True
@@ -22,10 +25,13 @@ class AllsetUserManager(BaseUserManager):
 
 class AllsetUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     first_name=models.CharField(max_length=50)
     last_name=models.CharField(max_length=50)
+    DOB=models.DateField(null=True, blank=True)
+    age = models.PositiveIntegerField(null=True, blank=True)
+    phone_number=models.CharField(max_length=15)
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login=models.DateTimeField(auto_now=True)
 
@@ -36,3 +42,29 @@ class AllsetUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+    def save(self, *args, **kwargs):
+        # Auto-calculate age if DOB is provided
+        if self.DOB:
+            today = date.today()
+            self.age = today.year - self.DOB.year - ((today.month, today.day) < (self.DOB.month, self.DOB.day))
+        super().save(*args, **kwargs)
+    
+class PasswordReset(models.Model):
+    email = models.ForeignKey(AllsetUser, on_delete=models.CASCADE)
+    token = models.UUIDField(default=uuid.uuid4, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.email
+
+    class Meta:
+        ordering = ['-created_at']
+
+class ActivateAccount(models.Model):
+    email = models.ForeignKey(AllsetUser, on_delete=models.CASCADE)
+    token = models.UUIDField(default=uuid.uuid4, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.email
+   
